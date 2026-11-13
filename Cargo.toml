@@ -2,7 +2,7 @@
 name = "herald"
 version = "0.2.0"
 edition = "2021"
-rust-version = "1.85"
+rust-version = "1.88"
 description = "Certificate Transparency log monitor with typosquat, CAA and expiry alerts"
 license = "MIT"
 repository = "https://github.com/LLCForge/Herald"

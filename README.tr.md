@@ -60,7 +60,7 @@ Herald, ailenin uygulama katmanındaki nöbetçisidir: [Vigil](https://github.co
 
 > **Durum:** yayın öncesi. Yapılandırma anahtarları ve CLI bayrakları 1.0'dan önce değişebilir.
 
-Gereksinim: 1.85 veya daha yeni kararlı bir Rust araç zinciri ([rustup.rs](https://rustup.rs)). Linux, macOS ve Windows'ta sistem kütüphanesi gerekmez (TLS için rustls kullanılır).
+Gereksinim: 1.88 veya daha yeni kararlı bir Rust araç zinciri ([rustup.rs](https://rustup.rs)). Linux, macOS ve Windows'ta sistem kütüphanesi gerekmez (TLS için rustls kullanılır).
 
 ```bash
 git clone https://github.com/LLCForge/Herald.git
@@ -104,7 +104,7 @@ Gizli bilgiler her zaman yapılandırmada adı verilen ortam değişkenlerinden 
 | Windows | `scoop install herald` (manifest `packaging/scoop/` altında) veya `winget install LLCForge.Herald`. Servis olarak: yönetici PowerShell'de `packaging/windows/install-service.ps1` ya da `herald --config C:\ProgramData\LLCForge\herald\herald.toml service install`. Ayrıntılar [packaging/windows/README.md](packaging/windows/README.md) dosyasında. |
 | Docker | [docker-compose.yml](docker-compose.yml) ile `docker compose up -d` (salt okunur kök dosya sistemi, yetki yok, durum `/data` volume'ünde). Konteyner içinde `[metrics] listen = "0.0.0.0:9898"` ayarla. |
 | Kubernetes | `helm install herald deploy/helm/herald -f benim-values.yaml`; chart, 9898 portunda `/healthz` ve `/readyz` yoklar ve ServiceMonitor oluşturabilir. |
-| Kaynaktan | `cargo install --path .` (Rust 1.85+ olan her işletim sistemi). |
+| Kaynaktan | `cargo install --path .` (Rust 1.88+ olan her işletim sistemi). |
 
 Herald hiçbir işletim sisteminde özel yetki istemez: yalnızca dışarıya HTTPS bağlantıları (ve `caa.resolver = "udp://..."` veya `"tcp://..."` ile DNS bağlantıları) açar ve yapılandırdığın yönetim portunu dinler.
 

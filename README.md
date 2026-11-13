@@ -60,7 +60,7 @@ Herald is the suite's application-layer sentinel: [Vigil](https://github.com/LLC
 
 > **Status:** pre-release. Configuration keys and CLI flags may change before 1.0.
 
-Requirements: a stable Rust toolchain 1.85 or newer ([rustup.rs](https://rustup.rs)). No system libraries are needed (TLS is rustls) on Linux, macOS or Windows.
+Requirements: a stable Rust toolchain 1.88 or newer ([rustup.rs](https://rustup.rs)). No system libraries are needed (TLS is rustls) on Linux, macOS or Windows.
 
 ```bash
 git clone https://github.com/LLCForge/Herald.git
@@ -104,7 +104,7 @@ Secrets are always read from the environment variables named in the config, neve
 | Windows | `scoop install herald` (manifest in `packaging/scoop/`) or `winget install LLCForge.Herald`. As a service: `packaging/windows/install-service.ps1` from an elevated PowerShell, or `herald --config C:\ProgramData\LLCForge\herald\herald.toml service install`. See [packaging/windows/README.md](packaging/windows/README.md). |
 | Docker | `docker compose up -d` with [docker-compose.yml](docker-compose.yml) (read-only root, no capabilities, state in the `/data` volume). Set `[metrics] listen = "0.0.0.0:9898"` inside the container. |
 | Kubernetes | `helm install herald deploy/helm/herald -f my-values.yaml`; the chart probes `/healthz` and `/readyz` on port 9898 and can create a ServiceMonitor. |
-| From source | `cargo install --path .` (any OS with Rust 1.85+). |
+| From source | `cargo install --path .` (any OS with Rust 1.88+). |
 
 Herald needs no special privileges on any OS: it only makes outbound HTTPS connections (and DNS ones with `caa.resolver = "udp://..."` or `"tcp://..."`) and listens on the management port you configure.
 

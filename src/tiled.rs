@@ -232,7 +232,7 @@ pub fn parse_data_tile(data: &[u8], width: u16) -> Result<Vec<TileEntry>> {
             None
         };
         let chain = r.vec(2)?;
-        if chain.len() % 32 != 0 {
+        if !chain.len().is_multiple_of(32) {
             bail!("certificate_chain is not a list of fingerprints");
         }
         let mut leaf = Vec::with_capacity(te_len + 2);
@@ -302,7 +302,7 @@ impl TiledClient {
         let body = self
             .get_with_full_fallback(tile_path(&id), tile_path(&full), id.width < 256)
             .await?;
-        if body.len() % 32 != 0 || body.len() / 32 < usize::from(id.width) {
+        if !body.len().is_multiple_of(32) || body.len() / 32 < usize::from(id.width) {
             return Err(anyhow!("hash tile {} has {} bytes", tile_path(&id), body.len()).into());
         }
         Ok(body
