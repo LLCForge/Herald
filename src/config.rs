@@ -5,8 +5,8 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use llcforge_alert::config::SinkKind;
-use llcforge_alert::{AlertsConfig, HealthConfig, LogFormat, SilencesConfig};
+use llcforge_beacon::config::SinkKind;
+use llcforge_beacon::{AlertsConfig, HealthConfig, LogFormat, SilencesConfig};
 use serde::Deserialize;
 
 pub const DEFAULT_LOG_LIST_URL: &str = "https://www.gstatic.com/ct/log_list/v3/log_list.json";

@@ -42,7 +42,7 @@ Herkesçe güvenilen her TLS sertifikası Certificate Transparency'ye loglanmak 
 - **CAA.** `caa = true` olan domain'lerde Herald CAA kayıtlarını çözer (DNS-over-HTTPS, UDP veya TCP; RFC 8659 ağaç tırmanma; `issue` / `issuewild`) ve izin verilen CA'ları beklenen sertifika veren olarak kabul eder. Başka bir CA'dan gelen sertifika kritik bir `caa_violation` alarmı üretir.
 - **Envanter.** Eşleşen her sertifika `<data_dir>/inventory.json` dosyasında tutulur. `herald backfill` envanteri crt.sh'tan doldurur, `herald report` domain'lerin için görülen tüm host adlarını listeler (metin, Markdown, JSON) ve Herald, adlarından birinin en yeni sertifikasının süresi CT'de yenisi görünmeden dolmak üzereyse uyarır.
 - **Kaldırma (takedown) takibi.** Benzer, typosquat ve şüpheli olarak işaretlenen sertifikalar CRL dağıtım noktalarına göre yeniden kontrol edilir (URL başına önbellekli); iptal edildiklerinde bildirilir.
-- **Alarmlar [llcforge-alert](crates/llcforge-alert) üzerinden:** Telegram, HMAC imzalı webhook, Slack, Discord, Teams, e-posta, PagerDuty, Opsgenie, syslog, stdout. Kalıcı teslim kuyruğu, sink başına yeniden deneme ve hız sınırı, susturmalar (`herald silence`, `/v1/silences`) ve domain başına alıcılar: alarmın resource alanı izlenen domain'dir, yani `resources = ["example.org"]` o domain'i tek bir sink'e yönlendirir.
+- **Alarmlar [llcforge-beacon](crates/llcforge-beacon) üzerinden:** Telegram, HMAC imzalı webhook, Slack, Discord, Teams, e-posta, PagerDuty, Opsgenie, syslog, stdout. Kalıcı teslim kuyruğu, sink başına yeniden deneme ve hız sınırı, susturmalar (`herald silence`, `/v1/silences`) ve domain başına alıcılar: alarmın resource alanı izlenen domain'dir, yani `resources = ["example.org"]` o domain'i tek bir sink'e yönlendirir.
 - **Telegram butonları.** İsteğe bağlı *Known*, *Suspicious* ve *Mute* butonlu kartlar (`getUpdates` long polling, kullanıcı izin listesi).
 - **Yeniden başlatmaya dayanıklı tekilleştirme.** Bir ön sertifika ile son sertifikası tek alarm üretir; durum yeniden başlatmada korunur.
 - **İşletim:** `/metrics`, `/healthz`, `/readyz`, JSON veya metin log'lar, yapılandırmayı yeniden yükleme (SIGHUP, dosya değişikliği, `POST /v1/reload`), Windows servisi / systemd / launchd, Docker, Helm, `deploy/` altında Grafana panosu ve Prometheus kuralları.
@@ -157,7 +157,7 @@ Her alarmın `resource` alanı izlenen domain'dir (`log_inconsistent` için CT l
 
 ### Webhook imzaları
 
-`hmac_secret_env` ayarlıysa her webhook isteği `X-LLCForge-Timestamp` ve `X-LLCForge-Signature: sha256=<hex>` = HMAC-SHA256(gizli, `"<timestamp>.<ham gövde>"`) başlıklarını taşır. Beş dakikadan eski istekleri reddet. Python ile bir alıcı örneği [llcforge-alert README](crates/llcforge-alert/README.md#verifying-webhook-signatures) dosyasında.
+`hmac_secret_env` ayarlıysa her webhook isteği `X-LLCForge-Timestamp` ve `X-LLCForge-Signature: sha256=<hex>` = HMAC-SHA256(gizli, `"<timestamp>.<ham gövde>"`) başlıklarını taşır. Beş dakikadan eski istekleri reddet. Python ile bir alıcı örneği [llcforge-beacon README](crates/llcforge-beacon/README.md#verifying-webhook-signatures) dosyasında.
 
 ### Yapılandırma başvurusu
 
@@ -181,7 +181,7 @@ Her alarmın `resource` alanı izlenen domain'dir (`log_inconsistent` için CT l
 | `typosquats` / `typo_distance` | `false` / `1` | Typosquat tespiti; en fazla düzenleme mesafesi 1 ile 3 |
 | `caa` | `false` | Beklenen sağlayıcılar CAA'dan, aksi halde `caa_violation` |
 | `expected_issuers` | `[]` | Eşleşmeleri susturulan sertifika sağlayıcı O veya CN değerleri (büyük/küçük harf duyarsız) |
-| `[alerts]`, `[[alerts.sink]]` | bir stdout sink'i | [llcforge-alert](crates/llcforge-alert/README.md#configuration) belgesine bak; ortak sink anahtarları `resources`, `kinds`, `min_severity`, `rate_per_minute` |
+| `[alerts]`, `[[alerts.sink]]` | bir stdout sink'i | [llcforge-beacon](crates/llcforge-beacon/README.md#configuration) belgesine bak; ortak sink anahtarları `resources`, `kinds`, `min_severity`, `rate_per_minute` |
 | `caa.resolver` | `https://cloudflare-dns.com/dns-query` | DoH URL'si, `udp://sunucu[:port]` veya `tcp://sunucu[:port]` |
 | `caa.refresh_secs` | `3600` | CAA'nın yeniden çözülme aralığı |
 | `[caa.issuer_domains]` | yerleşik tablo | Ek sağlayıcı kuruluşu ile CAA kimliği eşlemeleri |

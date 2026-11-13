@@ -20,7 +20,7 @@ by tools/gen_confusables.py.
 Copyright (c) 1991-2026 Unicode, Inc. Distributed under the Unicode License v3;
 the full copyright and permission notice is in data/LICENSE-UNICODE.
 
-crates/llcforge-alert is the shared LLCForge alerting crate (MIT), vendored
+crates/llcforge-beacon is the shared LLCForge alerting crate (MIT), vendored
 by sync.py.
 
 Third-party Rust crates used by this project are distributed under their own

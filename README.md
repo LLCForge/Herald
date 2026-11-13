@@ -42,7 +42,7 @@ Every publicly trusted TLS certificate must be logged in Certificate Transparenc
 - **CAA.** For `caa = true` domains Herald resolves CAA (DNS-over-HTTPS, UDP or TCP; RFC 8659 tree climbing; `issue` / `issuewild`) and treats the CAs it allows as expected issuers. A certificate from any other CA raises a critical `caa_violation` alert.
 - **Inventory.** Every matched certificate is kept in `<data_dir>/inventory.json`. `herald backfill` seeds it from crt.sh, `herald report` lists every host name seen for your domains (text, Markdown, JSON), and Herald warns when the newest certificate of one of your names is about to expire with no renewal in CT.
 - **Takedown tracking.** Lookalike, typosquat and suspicious certificates are re-checked against their CRL distribution points (cached per URL); a revocation is reported.
-- **Alerts through [llcforge-alert](crates/llcforge-alert):** Telegram, HMAC-signed webhook, Slack, Discord, Teams, e-mail, PagerDuty, Opsgenie, syslog, stdout. Persistent delivery queue, per-sink retries and rate limits, silences (`herald silence`, `/v1/silences`) and per-domain recipients: the alert resource is the watched domain, so `resources = ["example.org"]` routes that domain to one sink.
+- **Alerts through [llcforge-beacon](crates/llcforge-beacon):** Telegram, HMAC-signed webhook, Slack, Discord, Teams, e-mail, PagerDuty, Opsgenie, syslog, stdout. Persistent delivery queue, per-sink retries and rate limits, silences (`herald silence`, `/v1/silences`) and per-domain recipients: the alert resource is the watched domain, so `resources = ["example.org"]` routes that domain to one sink.
 - **Telegram buttons.** Optional action cards with *Known*, *Suspicious* and *Mute* buttons (`getUpdates` long polling, user allowlist).
 - **Restart-safe dedup.** A precertificate and its final certificate alert once; the state survives restarts.
 - **Operations:** `/metrics`, `/healthz`, `/readyz`, JSON or text logs, configuration reload (SIGHUP, file change, `POST /v1/reload`), Windows service / systemd / launchd, Docker, Helm, Grafana dashboard and Prometheus rules in `deploy/`.
@@ -157,7 +157,7 @@ Every alert's `resource` is the watched domain (the CT log URL for `log_inconsis
 
 ### Webhook signatures
 
-With `hmac_secret_env` set, every webhook request carries `X-LLCForge-Timestamp` and `X-LLCForge-Signature: sha256=<hex>` = HMAC-SHA256(secret, `"<timestamp>.<raw body>"`). Reject requests older than five minutes. A Python receiver is in the [llcforge-alert README](crates/llcforge-alert/README.md#verifying-webhook-signatures).
+With `hmac_secret_env` set, every webhook request carries `X-LLCForge-Timestamp` and `X-LLCForge-Signature: sha256=<hex>` = HMAC-SHA256(secret, `"<timestamp>.<raw body>"`). Reject requests older than five minutes. A Python receiver is in the [llcforge-beacon README](crates/llcforge-beacon/README.md#verifying-webhook-signatures).
 
 ### Configuration reference
 
@@ -181,7 +181,7 @@ With `hmac_secret_env` set, every webhook request carries `X-LLCForge-Timestamp`
 | `typosquats` / `typo_distance` | `false` / `1` | Typosquat detection; maximum edit distance 1 to 3 |
 | `caa` | `false` | Expected issuers from CAA, `caa_violation` otherwise |
 | `expected_issuers` | `[]` | Issuer O or CN values (case-insensitive) whose matches are muted |
-| `[alerts]`, `[[alerts.sink]]` | one stdout sink | See [llcforge-alert](crates/llcforge-alert/README.md#configuration); common sink keys `resources`, `kinds`, `min_severity`, `rate_per_minute` |
+| `[alerts]`, `[[alerts.sink]]` | one stdout sink | See [llcforge-beacon](crates/llcforge-beacon/README.md#configuration); common sink keys `resources`, `kinds`, `min_severity`, `rate_per_minute` |
 | `caa.resolver` | `https://cloudflare-dns.com/dns-query` | DoH URL, `udp://host[:port]` or `tcp://host[:port]` |
 | `caa.refresh_secs` | `3600` | CAA re-resolution interval |
 | `[caa.issuer_domains]` | built-in table | Extra issuer-organisation to CAA identifier mappings |

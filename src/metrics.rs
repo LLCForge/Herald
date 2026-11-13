@@ -45,7 +45,7 @@ pub struct Metrics {
     pub inventory_certs: AtomicU64,
     pub revoked_takedowns: AtomicU64,
     /// Metrics of the current alert dispatcher (replaced on reload).
-    pub dispatcher: Mutex<Option<Arc<llcforge_alert::Metrics>>>,
+    pub dispatcher: Mutex<Option<Arc<llcforge_beacon::Metrics>>>,
 }
 
 impl Metrics {

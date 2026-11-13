@@ -11,7 +11,7 @@ This document describes how Herald is put together, where its trust boundaries a
 - **Verify, then trust.** Tree head signatures, consistency between tree heads and (for tiled logs) the hash of every data tile are checked before entries are used.
 - **Untrusted input everywhere.** CT entries, tiles, checkpoints, log list, DNS answers, CRLs, crt.sh rows and Telegram updates are parsed defensively: HTTP bodies are capped at 32 MiB, TLS-style and DNS length prefixes are bounds checked, there is no `unsafe` code.
 - **Secrets from the environment.** Tokens are read from environment variables, never from config files or logs. HTTP errors are logged without the request URL, which for Telegram contains the bot token.
-- **Cross-platform.** Pure Rust (rustls, ring); no OS-specific code in Herald itself. Service integration (Windows SCM, systemd, launchd) comes from llcforge-alert.
+- **Cross-platform.** Pure Rust (rustls, ring); no OS-specific code in Herald itself. Service integration (Windows SCM, systemd, launchd) comes from llcforge-beacon.
 
 ## Data flow
 
@@ -25,7 +25,7 @@ flowchart LR
   P --> M[Matcher: exact / subdomain / wildcard / TR39 lookalike / typosquat]
   M -->|bounded queue| N[Pipeline: dedup, inventory, CAA, mute]
   CAA[CAA refresher: DoH / UDP / TCP] --> N
-  N --> D[llcforge-alert dispatcher]
+  N --> D[llcforge-beacon dispatcher]
   D --> Q[(Persistent queue)]
   D --> S[Sinks: Telegram, webhook+HMAC, Slack, Discord, Teams, e-mail, PagerDuty, Opsgenie, syslog, stdout]
   N --> TA[Telegram action cards]
@@ -59,8 +59,8 @@ flowchart LR
 | **CRL** | `src/crl.rs` | Fetches and parses CRLs (`x509-parser`), caches per URL until `nextUpdate` (1 to 6 hours). |
 | **Telegram actions** | `src/tgactions.rs` | Card sender (1 msg/s) and `getUpdates` poller; authorises presses by chat id and user allowlist; applies verdicts, silences and `cert_suspicious` alerts. |
 | **Checkpoints** | `src/checkpoint.rs` | One JSON file per log (`<data_dir>/checkpoints/<first 16 bytes of sha256(url), hex>.json`): next index plus last verified tree size and root. Atomic write helper used by all state files. |
-| **Metrics** | `src/metrics.rs` | Herald counters and gauges plus the dispatcher's `llcforge_alert_*` metrics at `GET /metrics`. |
-| **llcforge-alert** | `crates/llcforge-alert` | Vendored shared crate: alert schema, dispatcher, sinks, persistent queue, silences, health, reload, logging, service. |
+| **Metrics** | `src/metrics.rs` | Herald counters and gauges plus the dispatcher's `llcforge_beacon_*` metrics at `GET /metrics`. |
+| **llcforge-beacon** | `crates/llcforge-beacon` | Vendored shared crate: alert schema, dispatcher, sinks, persistent queue, silences, health, reload, logging, service. |
 
 ## Verification model
 
@@ -95,7 +95,7 @@ The checkpoint stores the index of the next entry to fetch and the last verified
 | Malformed entry | Counted in `herald_entries_malformed_total` and skipped (its hash is still part of tile verification). |
 | Log retired or removed from the list | Its tailer is stopped at the next list refresh. |
 | Log list unreachable | Running tailers continue; the list is retried after 60 seconds. |
-| A sink is down | llcforge-alert retries with backoff, keeps the alert in the persistent queue and redelivers; other sinks are unaffected. |
+| A sink is down | llcforge-beacon retries with backoff, keeps the alert in the persistent queue and redelivers; other sinks are unaffected. |
 | CAA lookup fails | The last known policy is kept; without one, CAA does not mute or alarm. |
 | crt.sh unavailable | `herald backfill` fails with a clear error; nothing is written. |
 | Inventory file corrupt | Startup fails with an error (it holds user verdicts); move it away to start fresh. Corrupt dedup state is ignored with a warning (worst case a duplicate alert). |
@@ -114,7 +114,7 @@ The checkpoint stores the index of the next entry to fetch and the last verified
 Herald/
 ├── .github/                   CI (Linux, macOS, Windows), release, dependabot
 ├── assets/                    logos, icons, README images
-├── crates/llcforge-alert/     vendored shared alerting crate (sync.py)
+├── crates/llcforge-beacon/     vendored shared alerting crate (sync.py)
 ├── data/                      TR39 confusables (compact) + Unicode licence
 ├── deploy/                    Grafana dashboard, Prometheus rules, Helm chart
 ├── packaging/                 deb/rpm metadata, systemd, launchd, Windows service, Homebrew, Scoop, winget

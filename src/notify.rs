@@ -1,11 +1,11 @@
 //! Certificate alerts: rendering, CAA evaluation, inventory recording, dedup and
-//! hand-off to the shared llcforge-alert dispatcher (and Telegram action cards).
+//! hand-off to the shared llcforge-beacon dispatcher (and Telegram action cards).
 
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use llcforge_alert::{Alert as KitAlert, AlertHandle, Severity, SilenceStore};
+use llcforge_beacon::{Alert as KitAlert, AlertHandle, Severity, SilenceStore};
 use serde::Serialize;
 use tokio::sync::mpsc;
 
@@ -38,7 +38,7 @@ const MAX_SANS: usize = 15;
 
 /// Escapes text for Telegram's HTML parse mode.
 pub fn html_escape(s: &str) -> String {
-    llcforge_alert::sink::telegram::escape_html(s)
+    llcforge_beacon::sink::telegram::escape_html(s)
 }
 
 /// Truncates and replaces control characters (no terminal escape injection via stdout).

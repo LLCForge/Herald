@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::{anyhow, bail, Context, Result};
-use llcforge_alert::{
+use llcforge_beacon::{
     env_secret, Alert as KitAlert, AlertHandle, NewSilence, Severity, SilenceStore,
 };
 use serde::Deserialize;

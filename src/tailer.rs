@@ -9,7 +9,7 @@ use std::time::Duration;
 use anyhow::{anyhow, bail, Context, Result};
 use base64::engine::general_purpose::STANDARD as B64;
 use base64::Engine;
-use llcforge_alert::{Alert as KitAlert, AlertHandle, Severity};
+use llcforge_beacon::{Alert as KitAlert, AlertHandle, Severity};
 use tokio::sync::{mpsc, watch};
 use tokio::task::JoinSet;
 

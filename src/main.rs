@@ -26,8 +26,8 @@ use std::time::{Duration, Instant};
 
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
-use llcforge_alert::cli::{run_silence_command, ServiceCommand, SilenceCommand};
-use llcforge_alert::{
+use llcforge_beacon::cli::{run_silence_command, ServiceCommand, SilenceCommand};
+use llcforge_beacon::{
     health_router, init_logging, reload_router, run_service_command, silences_router,
     Alert as KitAlert, ApiToken, Dispatcher, DispatcherOptions, LogFormat, Readiness, ReloadSignal,
     ServiceSpec, Severity, Shutdown, SilenceStore,
@@ -120,7 +120,7 @@ fn main() -> std::process::ExitCode {
     }
     let result = match cli.command {
         // Both build their own runtime (Windows service dispatcher needs the main thread).
-        Command::Run => llcforge_alert::service::run_foreground(cli.config, daemon),
+        Command::Run => llcforge_beacon::service::run_foreground(cli.config, daemon),
         Command::Service { cmd } => run_service_command(&SPEC, cmd.into_action(cli.config), daemon),
         Command::Silence { cmd } => {
             Config::load(&cli.config).and_then(|cfg| run_silence_command(cmd, &cfg.silences_path()))
@@ -429,7 +429,7 @@ fn daemon(config: PathBuf, mut shutdown: Shutdown) -> Result<()> {
                 }
                 let mut sd = shutdown.clone();
                 tokio::spawn(async move {
-                    if let Err(e) = llcforge_alert::serve(addr, admin, async move { sd.wait().await }).await {
+                    if let Err(e) = llcforge_beacon::serve(addr, admin, async move { sd.wait().await }).await {
                         tracing::error!(error = %e, "management listener failed");
                     }
                 });
@@ -705,7 +705,7 @@ fn reconcile(
 async fn inventory_task(
     cfg: Config,
     inventory: Arc<Mutex<Inventory>>,
-    kit: llcforge_alert::AlertHandle,
+    kit: llcforge_beacon::AlertHandle,
     metrics: Arc<Metrics>,
     client: reqwest::Client,
 ) {
