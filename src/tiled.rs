@@ -306,13 +306,11 @@ impl TiledClient {
             return Err(anyhow!("hash tile {} has {} bytes", tile_path(&id), body.len()).into());
         }
         Ok(body
-            .chunks_exact(32)
+            .as_chunks::<32>()
+            .0
+            .iter()
             .take(usize::from(id.width))
-            .map(|c| {
-                let mut h = [0u8; 32];
-                h.copy_from_slice(c);
-                h
-            })
+            .copied()
             .collect())
     }
 
