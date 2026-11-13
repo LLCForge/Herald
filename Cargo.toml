@@ -18,7 +18,7 @@ axum = { version = "0.8", default-features = false, features = ["http1", "json",
 chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
 llcforge-beacon = { path = "crates/llcforge-beacon", version = "0.1" }
 unicode-normalization = "0.1"
-base64 = "0.22"
+base64 = "0.23"
 clap = { version = "4", features = ["derive"] }
 idna = "1"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "gzip"] }
