@@ -1,0 +1,101 @@
+# Prometheus alerting rules for Herald (generic llcforge-alert metrics).
+# Load with `rule_files: ["herald-rules.yml"]` or as a PrometheusRule `spec`.
+# Assumes the scrape job is named "herald"; adjust the `job` matcher if not.
+groups:
+  - name: herald.availability
+    rules:
+      - alert: HeraldDown
+        expr: up{job="herald"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Herald is down on {{ $labels.instance }}"
+          description: "The Herald metrics endpoint has not been scrapeable for 5 minutes."
+
+      - alert: HeraldAbsent
+        expr: absent(up{job="herald"})
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No Herald targets are being scraped"
+
+  - name: herald.alert-delivery
+    rules:
+      - alert: HeraldAlertDeliveryFailing
+        expr: increase(llcforge_alert_sink_failed_total{tool="herald"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Herald cannot deliver alerts to sink {{ $labels.sink }} ({{ $labels.type }})"
+          description: "{{ $value | humanize }} delivery failures in 15 minutes. Undelivered alerts stay queued and are retried."
+
+      - alert: HeraldAlertsDropped
+        expr: increase(llcforge_alert_dropped_total{tool="herald"}[15m]) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "Herald dropped alerts on {{ $labels.instance }}"
+          description: "Alerts were dropped (intake channel full, queue bound reached or delivery expired)."
+
+      - alert: HeraldAlertQueueBacklog
+        expr: llcforge_alert_queue_depth{tool="herald"} > 100
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Herald alert queue backlog: {{ $value }} pending"
+          description: "Alerts are accumulating faster than sinks accept them, or a sink has been down for 15 minutes."
+
+      - alert: HeraldSinkBacklog
+        expr: llcforge_alert_sink_queued{tool="herald"} > 50
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Herald sink {{ $labels.sink }} has {{ $value }} undelivered alerts"
+
+  - name: herald.ct
+    rules:
+      - alert: HeraldLogLagging
+        expr: herald_log_lag_entries{job="herald"} > 100000
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Herald is {{ $value | humanize }} entries behind CT log {{ $labels.log }}"
+          description: "Certificates in this log are seen late. Raise logs.fetch_concurrency or check fetch errors."
+
+      - alert: HeraldLogInconsistent
+        expr: increase(herald_consistency_failures_total{job="herald"}[1h]) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "CT log {{ $labels.log }} served tree heads that are not consistent"
+          description: "A consistency proof (RFC 6962) or tile recomputation failed. This can mean a split view; report it to the log operator and the CT policy list."
+
+      - alert: HeraldTreeHeadSignatureFailures
+        expr: increase(herald_sth_verify_failures_total{job="herald"}[1h]) > 3
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tree head signatures of {{ $labels.log }} do not verify"
+
+      - alert: HeraldLogFetchErrors
+        expr: rate(herald_fetch_errors_total{job="herald"}[15m]) * 60 > 2
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Herald keeps failing to read CT log {{ $labels.log }}"
+
+      - alert: HeraldCertificateExpiring
+        expr: herald_expiring_names{job="herald"} > 0
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $value }} of your host names have no certificate valid beyond the warning window"
+          description: "Run `herald report` to see which names."

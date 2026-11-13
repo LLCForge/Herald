@@ -1,0 +1,72 @@
+[package]
+name = "herald"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.85"
+description = "Certificate Transparency log monitor with typosquat, CAA and expiry alerts"
+license = "MIT"
+repository = "https://github.com/LLCForge/Herald"
+authors = ["LLCForge contributors"]
+readme = "README.md"
+keywords = ["certificate-transparency", "tls", "monitoring", "telegram", "security"]
+categories = ["command-line-utilities", "network-programming"]
+exclude = ["assets/*", "deploy/*", "packaging/*"]
+
+[dependencies]
+anyhow = "1"
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio", "query"] }
+chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
+llcforge-alert = { path = "crates/llcforge-alert", version = "0.1" }
+unicode-normalization = "0.1"
+base64 = "0.22"
+clap = { version = "4", features = ["derive"] }
+idna = "1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "gzip"] }
+ring = "0.17"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "net", "io-util", "sync", "fs"] }
+toml = "0.8"
+tracing = "0.1"
+x509-parser = "0.18"
+
+[dev-dependencies]
+rcgen = "0.14"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+[package.metadata.deb]
+maintainer = "LLCForge contributors <https://github.com/LLCForge>"
+copyright = "2026, LLCForge contributors"
+license-file = ["LICENSE", "0"]
+extended-description = "Certificate Transparency log monitor with typosquat, CAA and expiry alerts"
+section = "net"
+priority = "optional"
+depends = "$auto"
+assets = [
+    ["target/release/herald", "usr/bin/", "755"],
+    ["herald.example.toml", "etc/herald/herald.toml", "644"],
+    ["README.md", "usr/share/doc/herald/README.md", "644"],
+    ["NOTICE", "usr/share/doc/herald/NOTICE", "644"],
+]
+conf-files = ["/etc/herald/herald.toml"]
+# Installs packaging/systemd/herald.service and the matching maintainer scripts;
+# the unit is not enabled automatically (configure first, then enable).
+systemd-units = { unit-name = "herald", unit-scripts = "packaging/systemd", enable = false, start = false }
+
+[package.metadata.generate-rpm]
+license = "MIT"
+summary = "Certificate Transparency log monitor with typosquat, CAA and expiry alerts"
+assets = [
+    { source = "target/release/herald", dest = "/usr/bin/herald", mode = "755" },
+    { source = "packaging/systemd/herald.service", dest = "/usr/lib/systemd/system/herald.service", mode = "644" },
+    { source = "herald.example.toml", dest = "/etc/herald/herald.toml", mode = "644", config = "noreplace" },
+    { source = "README.md", dest = "/usr/share/doc/herald/README.md", mode = "644", doc = true },
+    { source = "LICENSE", dest = "/usr/share/licenses/herald/LICENSE", mode = "644", doc = true },
+]
+post_install_script = "systemctl daemon-reload >/dev/null 2>&1 || :"
+post_uninstall_script = "systemctl daemon-reload >/dev/null 2>&1 || :"

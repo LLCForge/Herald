@@ -1,0 +1,4 @@
+/target
+/herald-data
+herald.toml
+*.json.tmp

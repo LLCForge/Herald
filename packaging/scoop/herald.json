@@ -1,0 +1,33 @@
+{
+    "##": "Scoop manifest for Herald. @VERSION@ and @SHA256_*@ are filled in by the release workflow; checkver/autoupdate keep it current afterwards.",
+    "version": "@VERSION@",
+    "description": "Certificate Transparency log monitor with typosquat, CAA and expiry alerts",
+    "homepage": "https://github.com/LLCForge/Herald",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/LLCForge/Herald/releases/download/v@VERSION@/herald-@VERSION@-x86_64-pc-windows-msvc.zip",
+            "hash": "@SHA256_X86_64_WINDOWS@"
+        },
+        "arm64": {
+            "url": "https://github.com/LLCForge/Herald/releases/download/v@VERSION@/herald-@VERSION@-aarch64-pc-windows-msvc.zip",
+            "hash": "@SHA256_AARCH64_WINDOWS@"
+        }
+    },
+    "bin": "herald.exe",
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/LLCForge/Herald/releases/download/v$version/herald-$version-x86_64-pc-windows-msvc.zip"
+            },
+            "arm64": {
+                "url": "https://github.com/LLCForge/Herald/releases/download/v$version/herald-$version-aarch64-pc-windows-msvc.zip"
+            }
+        },
+        "hash": {
+            "url": "$baseurl/SHA256SUMS",
+            "regex": "$sha256\\s+$basename"
+        }
+    }
+}

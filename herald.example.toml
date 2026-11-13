@@ -1,0 +1,108 @@
+# Herald example configuration. Copy to herald.toml and adjust.
+# Secrets are never stored here: they are read from the environment variables named below.
+
+# Checkpoints, dedup state, inventory, alert queue and silences live here.
+# Default: $STATE_DIRECTORY (systemd, container image) or ./herald-data.
+data_dir = "herald-data"
+
+[logs]
+# Google's CT log list v3: RFC 6962 logs and static-ct-api (tiled) logs in state usable/qualified.
+list_url = "https://www.gstatic.com/ct/log_list/v3/log_list.json"
+include_tiled = true          # also tail static-ct-api logs (Let's Encrypt, Google, Sectigo, ...)
+list_refresh_secs = 86400     # re-read the log list daily
+poll_interval_secs = 10       # how often each log's tree head / checkpoint is polled
+batch_size = 256              # entries per get-entries request (logs may return fewer)
+fetch_concurrency = 4         # max parallel pages / data tiles per log (adapts between 1 and this)
+backfill = 0                  # on first start, begin this many entries before the tree head
+verify_sth = true             # verify signatures, consistency between tree heads and tile hashes
+
+# Static override: when at least one [[logs.static]] is present, list_url is not used.
+# [[logs.static]]
+# url = "https://ct.example.com/log/"
+# key = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE..."   # base64 SPKI, optional
+# description = "Example RFC 6962 log"
+#
+# [[logs.static]]
+# url = "https://mon.ct.example.org/2026h2/"         # monitoring prefix
+# key = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE..."
+# tiled = true
+# origin = "log.ct.example.org/2026h2"                # submission prefix without https:// and trailing /
+# description = "Example tiled log"
+
+[dedup]
+window_secs = 86400           # precert + final cert with the same issuer/serial alert once (survives restarts)
+
+[[domain]]
+name = "example.net"
+include_subdomains = true     # www.example.net, a.b.example.net
+wildcards = true              # *.example.net (default true)
+expected_issuers = ["Let's Encrypt"]   # matches from these issuers (O or CN) are muted
+caa = true                    # CAs allowed by example.net's CAA records are expected; others alarm
+
+[[domain]]
+name = "example.org"
+lookalikes = true             # exаmple.org (Cyrillic а), examp1e.org, exarnple.org (Unicode TR39)
+typosquats = true             # exampel.org, exmple.org, exampme.org (bitflip), example.net, example-login.org
+typo_distance = 1             # max Damerau-Levenshtein distance (1..3)
+
+[alerts]
+dedup_window_secs = 300
+[alerts.queue]
+persistent = true             # undelivered alerts survive restarts (<data_dir>/alert-queue)
+
+[[alerts.sink]]
+type = "stdout"
+format = "text"
+
+[[alerts.sink]]
+type = "telegram"
+bot_token_env = "HERALD_TELEGRAM_TOKEN"
+chat_id = -1001234567890      # integer id, or "@channelname"
+rate_per_minute = 60
+
+# HMAC-signed webhook (X-LLCForge-Signature: sha256=<hex>), only for example.net alerts.
+# [[alerts.sink]]
+# type = "webhook"
+# url = "https://hooks.example.com/herald"
+# hmac_secret_env = "HERALD_WEBHOOK_HMAC"
+# resources = ["example.net"]
+#
+# Per-domain recipients: the alert resource is the watched domain.
+# [[alerts.sink]]
+# type = "email"
+# host = "smtp.example.net"
+# from = "Herald <herald@example.net>"
+# to = ["security@example.org"]
+# resources = ["example.org"]
+# kinds = ["lookalike", "typosquat", "caa_violation"]
+
+[caa]
+resolver = "https://cloudflare-dns.com/dns-query"   # or "udp://192.0.2.53", "tcp://192.0.2.53:53"
+refresh_secs = 3600
+# [caa.issuer_domains]
+# "Example Private CA" = ["ca.example.net"]
+
+[inventory]
+expiry_warn_days = 14         # warn when the newest certificate of one of your names expires soon
+check_interval_secs = 3600
+revocation_check = true       # track takedowns of lookalike/typosquat certificates via CRLs
+
+# Inline buttons (Known / Suspicious / Mute) in a Telegram chat, via getUpdates long polling.
+# [telegram_actions]
+# bot_token_env = "HERALD_TG_ACTIONS_TOKEN"   # use a bot that no other program polls
+# chat_id = -1001234567890
+# allowed_user_ids = [111111111]               # only these Telegram users may press buttons
+# mute_days = 7
+
+[silences]
+# api_token_env = "HERALD_ADMIN_TOKEN"        # mounts /v1/silences on the management listener
+
+[health]
+# admin_token_env = "HERALD_ADMIN_TOKEN"      # mounts POST /v1/reload
+
+[logging]
+format = "text"               # or "json"
+level = "info"                # HERALD_LOG overrides (e.g. HERALD_LOG=debug)
+
+[metrics]
+listen = "127.0.0.1:9898"     # /metrics, /healthz, /readyz, /v1/silences, /v1/reload

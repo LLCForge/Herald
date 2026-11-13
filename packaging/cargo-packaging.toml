@@ -1,0 +1,38 @@
+# Cargo.toml fragment for Herald packaging. Paste both tables at the end of
+# the tool's Cargo.toml (sync.py does not edit Cargo.toml). The release
+# workflow runs `cargo deb --no-build --target <triple>` and
+# `cargo generate-rpm --target <triple>`; both rewrite target/release/ to
+# target/<triple>/release/ automatically.
+
+[package.metadata.deb]
+# Replace with the project's packaging contact before the first release.
+maintainer = "LLCForge contributors <https://github.com/LLCForge>"
+copyright = "2026, LLCForge contributors"
+license-file = ["LICENSE", "0"]
+extended-description = "Certificate Transparency log monitor with typosquat, CAA and expiry alerts"
+section = "net"
+priority = "optional"
+depends = "$auto"
+assets = [
+    ["target/release/herald", "usr/bin/", "755"],
+    ["herald.example.toml", "etc/herald/herald.toml", "644"],
+    ["README.md", "usr/share/doc/herald/README.md", "644"],
+    ["NOTICE", "usr/share/doc/herald/NOTICE", "644"],
+]
+conf-files = ["/etc/herald/herald.toml"]
+# Installs packaging/systemd/herald.service and the matching maintainer scripts;
+# the unit is not enabled automatically (configure first, then enable).
+systemd-units = { unit-name = "herald", unit-scripts = "packaging/systemd", enable = false, start = false }
+
+[package.metadata.generate-rpm]
+license = "MIT"
+summary = "Certificate Transparency log monitor with typosquat, CAA and expiry alerts"
+assets = [
+    { source = "target/release/herald", dest = "/usr/bin/herald", mode = "755" },
+    { source = "packaging/systemd/herald.service", dest = "/usr/lib/systemd/system/herald.service", mode = "644" },
+    { source = "herald.example.toml", dest = "/etc/herald/herald.toml", mode = "644", config = "noreplace" },
+    { source = "README.md", dest = "/usr/share/doc/herald/README.md", mode = "644", doc = true },
+    { source = "LICENSE", dest = "/usr/share/licenses/herald/LICENSE", mode = "644", doc = true },
+]
+post_install_script = "systemctl daemon-reload >/dev/null 2>&1 || :"
+post_uninstall_script = "systemctl daemon-reload >/dev/null 2>&1 || :"

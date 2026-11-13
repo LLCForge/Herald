@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Herald launchd daemon for macOS.
+  Install:
+    sudo mkdir -p /usr/local/etc/herald /usr/local/var/lib/herald /usr/local/var/log
+    sudo cp herald.example.toml /usr/local/etc/herald/herald.toml
+    sudo chown -R nobody:nobody /usr/local/var/lib/herald
+    sudo touch /usr/local/var/log/herald.log && sudo chown nobody /usr/local/var/log/herald.log
+    sudo cp net.llcforge.herald.plist /Library/LaunchDaemons/
+    sudo launchctl bootstrap system /Library/LaunchDaemons/net.llcforge.herald.plist
+  Reload config: sudo launchctl kill HUP system/net.llcforge.herald
+  Secrets: add them under EnvironmentVariables below and keep this file
+  mode 0600 root:wheel, or source them from a wrapper script.
+  On Apple silicon with Homebrew, the binary lives in /opt/homebrew/bin.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>net.llcforge.herald</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/herald</string>
+    <string>run</string>
+    <string>--config</string>
+    <string>/usr/local/etc/herald/herald.toml</string>
+  </array>
+  <key>UserName</key>
+  <string>nobody</string>
+  <key>GroupName</key>
+  <string>nobody</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>STATE_DIRECTORY</key>
+    <string>/usr/local/var/lib/herald</string>
+  </dict>
+  <key>WorkingDirectory</key>
+  <string>/usr/local/var/lib/herald</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>Umask</key>
+  <integer>63</integer>
+  <key>StandardOutPath</key>
+  <string>/usr/local/var/log/herald.log</string>
+  <key>StandardErrorPath</key>
+  <string>/usr/local/var/log/herald.log</string>
+</dict>
+</plist>

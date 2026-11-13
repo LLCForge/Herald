@@ -1,0 +1,18 @@
+# winget default-locale manifest for Herald. @VERSION@ is filled in by the release workflow.
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: LLCForge.Herald
+PackageVersion: "@VERSION@"
+PackageLocale: en-US
+Publisher: LLCForge
+PublisherUrl: https://github.com/LLCForge
+PackageName: Herald
+PackageUrl: https://github.com/LLCForge/Herald
+License: MIT
+LicenseUrl: https://github.com/LLCForge/Herald/blob/main/LICENSE
+ShortDescription: Certificate Transparency log monitor with typosquat, CAA and expiry alerts
+Tags:
+  - networking
+  - monitoring
+  - llcforge
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0
